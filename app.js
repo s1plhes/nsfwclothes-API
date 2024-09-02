@@ -8,11 +8,10 @@ const rateLimit = require('@fastify/rate-limit');
 // Registro de MySQL con promesas habilitadas
 fastify.register(require('@fastify/mysql'), {
   promise: true,
-  connectionLimit: 100,
-  queueLimit: 0,
-  acquireTimeout: 10000,
-  //Using env variables for credentials for security reasons
-  connectionString: `mysql://${process.env.DB_USER}:${process.env.DB_PWRD}@${process.env.DB_HOST}/${process.env.DB_NAME}`
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER, 
+  password: process.env.DB_PASSWORD, 
+  database: process.env.DB_NAME,  
 });
 
 // Configuración de CORS
