@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "npm install"
+    "start": "npm install && nodemon app.js"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
