@@ -34,7 +34,7 @@ fastify.register(cors, {
 fastify.register(require('@fastify/multipart'));
 
 // Endpoint para enviar un mensaje de WhatsApp
-fastify.post('/API/OrderWS', async (req, reply) => {
+/*fastify.post('/API/OrderWS', async (req, reply) => {
   const { title, price, about, URL } = req.body;
   const messageBody = `Hola, estoy interesado en comprar el producto:
   - Título: ${title}
@@ -56,7 +56,7 @@ fastify.post('/API/OrderWS', async (req, reply) => {
     reply.code(500).send({ error: 'Error sending message', details: err.message });
   }
 });
-
+*/
 //Endpoint para crear un objeto en la base de datos
 fastify.post('/API/create_product', async (req, reply) => {
   const { title, price, about, image, cat } = req.body;
@@ -66,7 +66,7 @@ fastify.post('/API/create_product', async (req, reply) => {
   } catch (err) {
     reply.code(500).send({ error: 'Error creating product', details: err.message });
   }
-})
+});
 
 // Endpoint para obtener todos los productos por CAT
 fastify.get('/API/:cat', async (req, reply) => {
