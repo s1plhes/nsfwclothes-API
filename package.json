@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "npm install"
+    "start": "npm install"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
