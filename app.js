@@ -2,13 +2,8 @@ const fastify = require('fastify')({ logger: true });
 const dotenv = require('dotenv');
 dotenv.config();
 const cors = require('@fastify/cors');
-const twilio = require('twilio');
 const bcrypt = require('bcrypt');
 const rateLimit = require('@fastify/rate-limit');
-const path = require('path');
-const fs = require('fs');
-const client = new twilio(process.env.TWILIO_ACCOUNT, process.env.TWILIO_TOKEN);
-
 
 // Registro de MySQL con promesas habilitadas
 fastify.register(require('@fastify/mysql'), {
