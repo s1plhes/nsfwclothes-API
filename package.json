@@ -1,9 +1,12 @@
 {
-  "name": "nsfwclothes-api",
+  "name": "api-db",
   "version": "1.0.0",
   "license": "MIT",
-  "scripts": {
-    "start": "npm install && nodemon app.js"
+  "main": "app.js",
+"scripts": {
+    "init": "npm install --loglevel error --no-audit --no-fund && node app.js",
+    "build": "npm install",
+    "deploy": "node app.js"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
@@ -21,3 +24,4 @@
     "nodemon": "^3.1.4"
   }
 }
+

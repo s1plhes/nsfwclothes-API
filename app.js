@@ -5,17 +5,15 @@ const cors = require('@fastify/cors');
 const bcrypt = require('bcrypt');
 const rateLimit = require('@fastify/rate-limit');
 
-// Registro de MySQL con promesas habilitadas
 fastify.register(require('@fastify/mysql'), {
   promise: true,
   host: process.env.DB_HOST,
-  user: process.env.DB_USER, 
-  password: process.env.DB_PASSWORD, 
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT
 });
 
-// Configuración de CORS
 fastify.register(cors, {
   origin: (origin, cb) => {
     if (/^localhost$/m.test(origin)) {
@@ -28,31 +26,6 @@ fastify.register(cors, {
 
 fastify.register(require('@fastify/multipart'));
 
-// Endpoint para enviar un mensaje de WhatsApp
-/*fastify.post('/API/OrderWS', async (req, reply) => {
-  const { title, price, about, URL } = req.body;
-  const messageBody = `Hola, estoy interesado en comprar el producto:
-  - Título: ${title}
-  - Precio: ${price}
-  - Descripción: ${about}
-  - URL: ${URL}`;
-
-  try {
-    await client.messages
-      .create({
-        body: messageBody,
-        from: 'whatsapp:+14155238886',
-        to: 'whatsapp:+584127698781'
-      })
-      .then(message => {
-        reply.send({ message: 'Message sent successfully' });
-      });
-  } catch (err) {
-    reply.code(500).send({ error: 'Error sending message', details: err.message });
-  }
-});
-*/
-//Endpoint para crear un objeto en la base de datos
 fastify.post('/API/create_product', async (req, reply) => {
   const { title, price, about, image, cat } = req.body;
   try {
@@ -63,7 +36,15 @@ fastify.post('/API/create_product', async (req, reply) => {
   }
 });
 
-// Endpoint para obtener todos los productos por CAT
+fastify.get('/API/products', async (req, reply) => {
+  try {
+    const [rows] = await fastify.mysql.query('SELECT title,price,image,cat,id FROM products ORDER BY RAND() DESC LIMIT 6');
+    reply.send({ data: rows });
+  } catch (err) {
+    reply.code(500).send({ error: 'Error fetching T-shirts', details: err.message });
+  }
+});
+
 fastify.get('/API/:cat', async (req, reply) => {
   try {
     const [rows] = await fastify.mysql.query('SELECT * FROM products WHERE cat = ? ORDER BY id DESC', [req.params.cat]);
@@ -73,7 +54,6 @@ fastify.get('/API/:cat', async (req, reply) => {
   }
 });
 
-// Endpoint para obtener un producto por ID y CAT
 fastify.get('/API/:cat/:id', async (req, reply) => {
   try {
     const [rows] = await fastify.mysql.query('SELECT * FROM products WHERE cat = ? AND id = ? ORDER BY id DESC', [req.params.cat, req.params.id]);
@@ -87,21 +67,16 @@ fastify.get('/API/:cat/:id', async (req, reply) => {
   }
 });
 
-//Endpoint para editar un producto por ID y CAT
 fastify.put('/API/:cat/:id', async (req, reply) => {
   const { title, price, about, image } = req.body;
 
-  if (typeof title !== 'string' || typeof price !== 'number' || typeof about !== 'string' || typeof image !== 'string') {
-    return reply.code(400).send({ error: 'Invalid input data' });
-  }
-
   try {
     const [rows] = await fastify.mysql.query(
-      'UPDATE products SET title = ?, price = ?, about = ?, image = ? WHERE id = ? and cat = ?', 
+      'UPDATE products SET title = ?, price = ?, about = ?, image = ? WHERE id = ? and cat = ?',
       [title, price, about, image, req.params.id, req.params.cat]
     );
 
-    if (rows.affectedRows === 0) { 
+    if (rows.affectedRows === 0) {
       reply.code(404).send({ error: 'T-shirt not found' });
     } else {
       reply.send({ message: 'T-shirt updated successfully' });
@@ -111,7 +86,6 @@ fastify.put('/API/:cat/:id', async (req, reply) => {
   }
 });
 
-// Endpoint para recibir y guardar la calificación según el item y su tipo
 fastify.post('/API/rate', async (req, reply) => {
   const { rating, item_id, item_type } = req.body;
   if (!rating || rating < 1 || rating > 5) {
@@ -131,7 +105,6 @@ fastify.post('/API/rate', async (req, reply) => {
   }
 });
 
-// Endpoint para obtener las estadísticas del rating de un item
 fastify.get('/API/rating/:item_type/:item_id', async (req, reply) => {
   const { item_type, item_id } = req.params;
 
@@ -148,21 +121,17 @@ fastify.get('/API/rating/:item_type/:item_id', async (req, reply) => {
   } catch (err) {
     reply.code(500).send({ error: 'Database error', details: err.message });
   }
-//Rate Limiter
 });
- fastify.register(import('@fastify/rate-limit'), {
+
+fastify.register(import('@fastify/rate-limit'), {
   max: 5, // Max 5 requests per minute per IP
   timeWindow: '1 minute'
 });
 
-
-//JWT Setup
 fastify.register(require('@fastify/jwt'), {
-  secret: 'HyerVonSoxiel'
+  secret: process.env.SECRET_KEY
 });
 
-
-// Endpoint para el login de administrador
 fastify.post('/API/admin', async (req, reply) => {
   const { password } = req.body;
 
@@ -180,8 +149,8 @@ fastify.post('/API/admin', async (req, reply) => {
       return reply.code(401).send({ error: 'Unauthorized: Password is incorrect', details: err.message });
     }
 
-    const admAccessToken = fastify.jwt.sign({ adminId: 'SiplhesSwallengh' }, { expiresIn: '15m' });
-    const refreshToken = fastify.jwt.sign({ adminId: 'SiplhesSwallengh' }, { expiresIn: '7d' });
+    const admAccessToken = fastify.jwt.sign({ adminId: process.env.SECRET_KEY }, { expiresIn: '15m' });
+    const refreshToken = fastify.jwt.sign({ adminId: process.env.SECRET_KEY }, { expiresIn: '7d' });
 
     return reply.code(200).send({ adminAccessToken: admAccessToken, refreshToken });
   } catch (err) {
@@ -189,8 +158,6 @@ fastify.post('/API/admin', async (req, reply) => {
   }
 });
 
-
-// Endpoint para refrescar el token de acceso
 fastify.post('/API/admin/refresh-token', async (req, reply) => {
   const { refreshToken } = req.body;
 
@@ -203,10 +170,7 @@ fastify.post('/API/admin/refresh-token', async (req, reply) => {
   }
 });
 
-
-
-// Iniciar el servidor
-fastify.listen({ port: 3000 }, (err) => {
+fastify.listen({ port: process.env.APP_PORT || 4000, host: '0.0.0.0' }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
